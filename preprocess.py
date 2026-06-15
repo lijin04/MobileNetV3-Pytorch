@@ -96,7 +96,7 @@ def load_data(args):
 
         test_loader = torch.utils.data.DataLoader(
             datasets.ImageFolder(valdir, transforms.Compose([
-                transforms.Resize(256),
+                transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 normalize,
@@ -140,7 +140,7 @@ def load_data(args):
 
         val_loader = torch.utils.data.DataLoader(
             datasets.ImageFolder(valdir, transforms.Compose([
-                transforms.Resize(256),
+                transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 normalize,
@@ -163,10 +163,10 @@ def load_data(args):
             transforms.Compose([
                 transforms.RandomResizedCrop(224, scale=(0.6, 1.0)),
                 transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
-                transforms.RandomRotation(15),
+                transforms.RandAugment(num_ops=2, magnitude=7),
                 transforms.ToTensor(),
                 normalize,
+                transforms.RandomErasing(p=0.1),
             ]))
 
         if args.distributed:
@@ -179,20 +179,25 @@ def load_data(args):
             batch_size=args.batch_size,
             shuffle=(train_sampler is None),
             num_workers=args.workers,
-            pin_memory=True,
-            sampler=train_sampler
+            pin_memory=False,
+            sampler=train_sampler,
+            prefetch_factor=4 if args.workers > 0 else None,
+            persistent_workers=True if args.workers > 0 else False
         )
 
         test_loader = torch.utils.data.DataLoader(
             datasets.ImageFolder(valdir, transforms.Compose([
-                transforms.Resize(224),
+                transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),
+                transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 normalize,
             ])),
             batch_size=args.batch_size,
             shuffle=False,
             num_workers=args.workers,
-            pin_memory=True
+            pin_memory=False,
+            prefetch_factor=4 if args.workers > 0 else None,
+            persistent_workers=True if args.workers > 0 else False
         )
 
     if args.dataset_mode == "FLOWER102":

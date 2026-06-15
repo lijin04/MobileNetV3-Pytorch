@@ -1,1 +1,9 @@
-"data/tiny-imagenet-200/" 
+# 数据集
+data/
+checkpoint/
+reporting/
+*.t7
+*.pth
+__pycache__/
+venv/
+*.pyc
